@@ -97,29 +97,25 @@ const JobListing = () => {
                     </ul>
                 </div>
 
-               {/* Location Filter */}
-            <div className={showFilter ? "" : "max-lg:hidden"}>
-            <h4 className='font-medium text-lg py-4 pt-14'>Search by Location</h4>
-            {Object.entries(JobLocationsByContinent).map(([continent, countries]) => (
-                <div key={continent} className="mb-6">
-                <h5 className="font-semibold text-md py-2">{continent}</h5>
-                <ul className='space-y-2 max-h-48 overflow-y-auto text-gray-600'>
-                    {countries.map((location, index) => (
-                    <li className='flex gap-3 items-center' key={index}>
-                        <input
-                        className='scale-125'
-                        type="checkbox"
-                        onChange={() => handleLocationChange(location)}
-                        checked={selectedLocations.includes(location)}
-                        />
-                        {location}
-                    </li>
-                    ))}
-                </ul>
+                {/* Location Filter */}
+                <div className={showFilter ? "" : "max-lg:hidden"}>
+                    <h4 className='font-medium text-lg py-4 pt-14'>Search by Location</h4>
+                    <ul className='space-y-4 text-gray-600'>
+                        {
+                            JobLocations.map((location, index) => (
+                                <li className='flex gap-3 items-center' key={index}>
+                                    <input
+                                        className='scale-125'
+                                        type="checkbox"
+                                        onChange={() => handleLocationChange(location)}
+                                        checked={selectedLocations.includes(location)}
+                                    />
+                                    {location}
+                                </li>
+                            ))
+                        }
+                    </ul>
                 </div>
-            ))}
-            </div>
-
             </div>
 
             {/* Job listings */}
