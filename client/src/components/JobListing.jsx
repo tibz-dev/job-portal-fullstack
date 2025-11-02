@@ -44,6 +44,57 @@ const JobListing = () => {
         setCurrentPage(1)
     }, [jobs, selectedCategories, selectedLocations, searchFilter])
 
+    // Group JobLocations by continent
+    const JobLocationsByContinent = {
+        "Africa": JobLocations.filter(c => [
+            "Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde",
+            "Cameroon","Central African Republic","Chad","Comoros","Congo","Democratic Republic of the Congo",
+            "Djibouti","Egypt","Equatorial Guinea","Eritrea","Eswatini","Ethiopia","Gabon","Gambia",
+            "Ghana","Guinea","Guinea-Bissau","Ivory Coast","Kenya","Lesotho","Liberia","Libya",
+            "Madagascar","Malawi","Mali","Mauritania","Mauritius","Morocco","Mozambique","Namibia",
+            "Niger","Nigeria","Rwanda","Sao Tome and Principe","Senegal","Seychelles","Sierra Leone",
+            "Somalia","South Africa","South Sudan","Sudan","Tanzania","Togo","Tunisia","Uganda","Zambia","Zimbabwe"
+        ].includes(c)),
+        "Asia": JobLocations.filter(c => [
+            "Afghanistan","Armenia","Azerbaijan","Bahrain","Bangladesh","Bhutan","Brunei","Cambodia",
+            "China","Cyprus","Georgia","India","Indonesia","Iran","Iraq","Israel","Japan","Jordan",
+            "Kazakhstan","North Korea","South Korea","Kuwait","Kyrgyzstan","Laos","Lebanon","Malaysia",
+            "Maldives","Mongolia","Myanmar","Nepal","Oman","Pakistan","Palestine","Philippines",
+            "Qatar","Saudi Arabia","Singapore","Sri Lanka","Syria","Tajikistan","Thailand","Timor-Leste",
+            "Turkmenistan","United Arab Emirates","Uzbekistan","Vietnam","Yemen"
+        ].includes(c)),
+        "Europe": JobLocations.filter(c => [
+            "Albania","Andorra","Austria","Belarus","Belgium","Bosnia and Herzegovina","Bulgaria",
+            "Croatia","Czechia","Denmark","Estonia","Finland","France","Germany","Greece","Hungary",
+            "Iceland","Ireland","Italy","Latvia","Liechtenstein","Lithuania","Luxembourg","Malta",
+            "Monaco","Montenegro","Netherlands","North Macedonia","Norway","Poland","Portugal","Romania",
+            "Russia","San Marino","Serbia","Slovakia","Slovenia","Spain","Sweden","Switzerland","United Kingdom"
+        ].includes(c)),
+        "North America": JobLocations.filter(c => [
+            "Antigua and Barbuda","Bahamas","Barbados","Belize","Canada","Costa Rica","Cuba","Dominica",
+            "Dominican Republic","El Salvador","Grenada","Guatemala","Haiti","Honduras","Jamaica","Mexico",
+            "Nicaragua","Panama","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines",
+            "Trinidad and Tobago","United States of America"
+        ].includes(c)),
+        "South America": JobLocations.filter(c => [
+            "Argentina","Bolivia","Brazil","Chile","Colombia","Ecuador","Guyana","Paraguay","Peru",
+            "Suriname","Uruguay","Venezuela"
+        ].includes(c)),
+        "Oceania": JobLocations.filter(c => [
+            "Australia","Fiji","Kiribati","Marshall Islands","Micronesia","Nauru","New Zealand",
+            "Palau","Papua New Guinea","Samoa","Solomon Islands","Tonga","Tuvalu","Vanuatu"
+        ].includes(c))
+    }
+
+    const [expandedContinents, setExpandedContinents] = useState({})
+
+    const toggleContinent = (continent) => {
+        setExpandedContinents(prev => ({
+            ...prev,
+            [continent]: !prev[continent]
+        }))
+    }
+
     return (
         <div className='container 2xl:px-20 mx-auto flex flex-col lg:flex-row max-lg:space-y-8 py-8'>
 
@@ -100,21 +151,32 @@ const JobListing = () => {
                 {/* Location Filter */}
                 <div className={showFilter ? "" : "max-lg:hidden"}>
                     <h4 className='font-medium text-lg py-4 pt-14'>Search by Location</h4>
-                    <ul className='space-y-4 text-gray-600'>
-                        {
-                            JobLocations.map((location, index) => (
-                                <li className='flex gap-3 items-center' key={index}>
-                                    <input
-                                        className='scale-125'
-                                        type="checkbox"
-                                        onChange={() => handleLocationChange(location)}
-                                        checked={selectedLocations.includes(location)}
-                                    />
-                                    {location}
-                                </li>
-                            ))
-                        }
-                    </ul>
+
+                    {Object.entries(JobLocationsByContinent).map(([continent, countries]) => (
+                        <div key={continent} className="mb-4">
+                            <button
+                                className="font-semibold text-md py-2 w-full text-left"
+                                onClick={() => toggleContinent(continent)}
+                            >
+                                {continent}
+                            </button>
+                            {expandedContinents[continent] && (
+                                <ul className='space-y-2 max-h-48 overflow-y-auto text-gray-600'>
+                                    {countries.map((location, index) => (
+                                        <li className='flex gap-3 items-center' key={index}>
+                                            <input
+                                                className='scale-125'
+                                                type="checkbox"
+                                                onChange={() => handleLocationChange(location)}
+                                                checked={selectedLocations.includes(location)}
+                                            />
+                                            {location}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    ))}
                 </div>
             </div>
 
@@ -128,12 +190,11 @@ const JobListing = () => {
                     ))}
                 </div>
 
-
                 {/* Pagination */}
                 {filteredJobs.length > 0 && (
                     <div className='flex items-center justify-center space-x-2 mt-10'>
                         <a href="#job-list">
-                            <img onClick={() => setCurrentPage(Math.max(currentPage - 1), 1)} src={assets.left_arrow_icon} alt="" />
+                            <img onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))} src={assets.left_arrow_icon} alt="" />
                         </a>
                         {Array.from({ length: Math.ceil(filteredJobs.length / 6) }).map((_, index) => (
                             <a key={index} href="#job-list">
@@ -145,9 +206,7 @@ const JobListing = () => {
                         </a>
                     </div>
                 )}
-
             </section>
-
         </div>
     )
 }
