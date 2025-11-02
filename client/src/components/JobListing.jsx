@@ -4,12 +4,14 @@ import { assets, JobCategories, JobLocations } from '../assets/assets'
 import JobCard from './JobCard'
 
 const JobListing = () => {
+
     const { isSearched, searchFilter, setSearchFilter, jobs } = useContext(AppContext)
 
     const [showFilter, setShowFilter] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
     const [selectedCategories, setSelectedCategories] = useState([])
     const [selectedLocations, setSelectedLocations] = useState([])
+
     const [filteredJobs, setFilteredJobs] = useState(jobs)
 
     const handleCategoryChange = (category) => {
@@ -25,9 +27,13 @@ const JobListing = () => {
     }
 
     useEffect(() => {
+
         const matchesCategory = job => selectedCategories.length === 0 || selectedCategories.includes(job.category)
+
         const matchesLocation = job => selectedLocations.length === 0 || selectedLocations.includes(job.location)
+
         const matchesTitle = job => searchFilter.title === "" || job.title.toLowerCase().includes(searchFilter.title.toLowerCase())
+
         const matchesSearchLocation = job => searchFilter.location === "" || job.location.toLowerCase().includes(searchFilter.location.toLowerCase())
 
         const newFilteredJobs = jobs.slice().reverse().filter(
@@ -37,25 +43,6 @@ const JobListing = () => {
         setFilteredJobs(newFilteredJobs)
         setCurrentPage(1)
     }, [jobs, selectedCategories, selectedLocations, searchFilter])
-
-    // Continent mapping (for rendering only, JobLocations stays unchanged)
-    const continents = {
-        "Africa": ["South Africa","Nigeria","Kenya","Egypt","Morocco","Ghana","Ethiopia"],
-        "Asia": ["India","China","Japan","Singapore","Philippines","Pakistan"],
-        "Europe": ["United Kingdom","Germany","France","Italy","Spain"],
-        "North America": ["United States of America","Canada","Mexico"],
-        "South America": ["Brazil","Argentina","Chile"],
-        "Oceania": ["Australia","New Zealand","Fiji"]
-    }
-
-    const [expandedContinents, setExpandedContinents] = useState({})
-
-    const toggleContinent = (continent) => {
-        setExpandedContinents(prev => ({
-            ...prev,
-            [continent]: !prev[continent]
-        }))
-    }
 
     return (
         <div className='container 2xl:px-20 mx-auto flex flex-col lg:flex-row max-lg:space-y-8 py-8'>
@@ -72,13 +59,13 @@ const JobListing = () => {
                                 {searchFilter.title && (
                                     <span className='inline-flex items-center gap-2.5 bg-blue-50 border border-blue-200 px-4 py-1.5 rounded'>
                                         {searchFilter.title}
-                                        <img onClick={() => setSearchFilter(prev => ({ ...prev, title: "" }))} className='cursor-pointer' src={assets.cross_icon} alt="" />
+                                        <img onClick={e => setSearchFilter(prev => ({ ...prev, title: "" }))} className='cursor-pointer' src={assets.cross_icon} alt="" />
                                     </span>
                                 )}
                                 {searchFilter.location && (
                                     <span className='ml-2 inline-flex items-center gap-2.5 bg-red-50 border border-red-200 px-4 py-1.5 rounded'>
                                         {searchFilter.location}
-                                        <img onClick={() => setSearchFilter(prev => ({ ...prev, location: "" }))} className='cursor-pointer' src={assets.cross_icon} alt="" />
+                                        <img onClick={e => setSearchFilter(prev => ({ ...prev, location: "" }))} className='cursor-pointer' src={assets.cross_icon} alt="" />
                                     </span>
                                 )}
                             </div>
@@ -86,7 +73,7 @@ const JobListing = () => {
                     )
                 }
 
-                <button onClick={() => setShowFilter(prev => !prev)} className='px-6 py-1.5 rounded border border-gray-400 lg:hidden'>
+                <button onClick={e => setShowFilter(prev => !prev)} className='px-6 py-1.5 rounded border border-gray-400 lg:hidden'>
                     {showFilter ? "Close" : "Filters"}
                 </button>
 
@@ -94,52 +81,40 @@ const JobListing = () => {
                 <div className={showFilter ? "" : "max-lg:hidden"}>
                     <h4 className='font-medium text-lg py-4'>Search by Categories</h4>
                     <ul className='space-y-4 text-gray-600'>
-                        {JobCategories.map((category, index) => (
-                            <li className='flex gap-3 items-center' key={index}>
-                                <input
-                                    className='scale-125'
-                                    type="checkbox"
-                                    onChange={() => handleCategoryChange(category)}
-                                    checked={selectedCategories.includes(category)}
-                                />
-                                {category}
-                            </li>
-                        ))}
+                        {
+                            JobCategories.map((category, index) => (
+                                <li className='flex gap-3 items-center' key={index}>
+                                    <input
+                                        className='scale-125'
+                                        type="checkbox"
+                                        onChange={() => handleCategoryChange(category)}
+                                        checked={selectedCategories.includes(category)}
+                                    />
+                                    {category}
+                                </li>
+                            ))
+                        }
                     </ul>
                 </div>
 
                 {/* Location Filter */}
                 <div className={showFilter ? "" : "max-lg:hidden"}>
                     <h4 className='font-medium text-lg py-4 pt-14'>Search by Location</h4>
-
-                    {Object.entries(continents).map(([continent, continentCountries]) => {
-                        const countries = JobLocations.filter(c => continentCountries.includes(c))
-                        return (
-                            <div key={continent} className="mb-4">
-                                <button
-                                    className="font-semibold text-md py-2 w-full text-left"
-                                    onClick={() => toggleContinent(continent)}
-                                >
-                                    {continent}
-                                </button>
-                                {expandedContinents[continent] && (
-                                    <ul className='space-y-2 max-h-48 overflow-y-auto text-gray-600'>
-                                        {countries.map((location, index) => (
-                                            <li className='flex gap-3 items-center' key={index}>
-                                                <input
-                                                    className='scale-125'
-                                                    type="checkbox"
-                                                    onChange={() => handleLocationChange(location)}
-                                                    checked={selectedLocations.includes(location)}
-                                                />
-                                                {location}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        )
-                    })}
+                    <ul className='space-y-4 text-gray-600'>
+                        {
+                            JobLocations.map((location, index) => (
+                                <li className='flex gap-3 items-center' key={index}>
+                                    <input
+                                        className='scale-125'
+                                        type="checkbox"
+                                        onChange={() => handleLocationChange(location)}
+                                        checked={selectedLocations.includes(location)}
+                                    />
+                                    {location}
+                                </li>
+                            ))
+                        }
+                    </ul>
                 </div>
             </div>
 
@@ -153,11 +128,12 @@ const JobListing = () => {
                     ))}
                 </div>
 
+
                 {/* Pagination */}
                 {filteredJobs.length > 0 && (
                     <div className='flex items-center justify-center space-x-2 mt-10'>
                         <a href="#job-list">
-                            <img onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))} src={assets.left_arrow_icon} alt="" />
+                            <img onClick={() => setCurrentPage(Math.max(currentPage - 1), 1)} src={assets.left_arrow_icon} alt="" />
                         </a>
                         {Array.from({ length: Math.ceil(filteredJobs.length / 6) }).map((_, index) => (
                             <a key={index} href="#job-list">
@@ -169,7 +145,9 @@ const JobListing = () => {
                         </a>
                     </div>
                 )}
+
             </section>
+
         </div>
     )
 }
