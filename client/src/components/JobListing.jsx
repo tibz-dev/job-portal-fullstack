@@ -4,14 +4,12 @@ import { assets, JobCategories, JobLocations } from '../assets/assets'
 import JobCard from './JobCard'
 
 const JobListing = () => {
-
     const { isSearched, searchFilter, setSearchFilter, jobs } = useContext(AppContext)
 
     const [showFilter, setShowFilter] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
     const [selectedCategories, setSelectedCategories] = useState([])
     const [selectedLocations, setSelectedLocations] = useState([])
-
     const [filteredJobs, setFilteredJobs] = useState(jobs)
 
     const handleCategoryChange = (category) => {
@@ -27,13 +25,9 @@ const JobListing = () => {
     }
 
     useEffect(() => {
-
         const matchesCategory = job => selectedCategories.length === 0 || selectedCategories.includes(job.category)
-
         const matchesLocation = job => selectedLocations.length === 0 || selectedLocations.includes(job.location)
-
         const matchesTitle = job => searchFilter.title === "" || job.title.toLowerCase().includes(searchFilter.title.toLowerCase())
-
         const matchesSearchLocation = job => searchFilter.location === "" || job.location.toLowerCase().includes(searchFilter.location.toLowerCase())
 
         const newFilteredJobs = jobs.slice().reverse().filter(
@@ -44,46 +38,14 @@ const JobListing = () => {
         setCurrentPage(1)
     }, [jobs, selectedCategories, selectedLocations, searchFilter])
 
-    // Group JobLocations by continent
-    const JobLocationsByContinent = {
-        "Africa": JobLocations.filter(c => [
-            "Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cabo Verde",
-            "Cameroon","Central African Republic","Chad","Comoros","Congo","Democratic Republic of the Congo",
-            "Djibouti","Egypt","Equatorial Guinea","Eritrea","Eswatini","Ethiopia","Gabon","Gambia",
-            "Ghana","Guinea","Guinea-Bissau","Ivory Coast","Kenya","Lesotho","Liberia","Libya",
-            "Madagascar","Malawi","Mali","Mauritania","Mauritius","Morocco","Mozambique","Namibia",
-            "Niger","Nigeria","Rwanda","Sao Tome and Principe","Senegal","Seychelles","Sierra Leone",
-            "Somalia","South Africa","South Sudan","Sudan","Tanzania","Togo","Tunisia","Uganda","Zambia","Zimbabwe"
-        ].includes(c)),
-        "Asia": JobLocations.filter(c => [
-            "Afghanistan","Armenia","Azerbaijan","Bahrain","Bangladesh","Bhutan","Brunei","Cambodia",
-            "China","Cyprus","Georgia","India","Indonesia","Iran","Iraq","Israel","Japan","Jordan",
-            "Kazakhstan","North Korea","South Korea","Kuwait","Kyrgyzstan","Laos","Lebanon","Malaysia",
-            "Maldives","Mongolia","Myanmar","Nepal","Oman","Pakistan","Palestine","Philippines",
-            "Qatar","Saudi Arabia","Singapore","Sri Lanka","Syria","Tajikistan","Thailand","Timor-Leste",
-            "Turkmenistan","United Arab Emirates","Uzbekistan","Vietnam","Yemen"
-        ].includes(c)),
-        "Europe": JobLocations.filter(c => [
-            "Albania","Andorra","Austria","Belarus","Belgium","Bosnia and Herzegovina","Bulgaria",
-            "Croatia","Czechia","Denmark","Estonia","Finland","France","Germany","Greece","Hungary",
-            "Iceland","Ireland","Italy","Latvia","Liechtenstein","Lithuania","Luxembourg","Malta",
-            "Monaco","Montenegro","Netherlands","North Macedonia","Norway","Poland","Portugal","Romania",
-            "Russia","San Marino","Serbia","Slovakia","Slovenia","Spain","Sweden","Switzerland","United Kingdom"
-        ].includes(c)),
-        "North America": JobLocations.filter(c => [
-            "Antigua and Barbuda","Bahamas","Barbados","Belize","Canada","Costa Rica","Cuba","Dominica",
-            "Dominican Republic","El Salvador","Grenada","Guatemala","Haiti","Honduras","Jamaica","Mexico",
-            "Nicaragua","Panama","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines",
-            "Trinidad and Tobago","United States of America"
-        ].includes(c)),
-        "South America": JobLocations.filter(c => [
-            "Argentina","Bolivia","Brazil","Chile","Colombia","Ecuador","Guyana","Paraguay","Peru",
-            "Suriname","Uruguay","Venezuela"
-        ].includes(c)),
-        "Oceania": JobLocations.filter(c => [
-            "Australia","Fiji","Kiribati","Marshall Islands","Micronesia","Nauru","New Zealand",
-            "Palau","Papua New Guinea","Samoa","Solomon Islands","Tonga","Tuvalu","Vanuatu"
-        ].includes(c))
+    // Continent mapping (for rendering only, JobLocations stays unchanged)
+    const continents = {
+        "Africa": ["South Africa","Nigeria","Kenya","Egypt","Morocco","Ghana","Ethiopia"],
+        "Asia": ["India","China","Japan","Singapore","Philippines","Pakistan"],
+        "Europe": ["United Kingdom","Germany","France","Italy","Spain"],
+        "North America": ["United States of America","Canada","Mexico"],
+        "South America": ["Brazil","Argentina","Chile"],
+        "Oceania": ["Australia","New Zealand","Fiji"]
     }
 
     const [expandedContinents, setExpandedContinents] = useState({})
@@ -110,13 +72,13 @@ const JobListing = () => {
                                 {searchFilter.title && (
                                     <span className='inline-flex items-center gap-2.5 bg-blue-50 border border-blue-200 px-4 py-1.5 rounded'>
                                         {searchFilter.title}
-                                        <img onClick={e => setSearchFilter(prev => ({ ...prev, title: "" }))} className='cursor-pointer' src={assets.cross_icon} alt="" />
+                                        <img onClick={() => setSearchFilter(prev => ({ ...prev, title: "" }))} className='cursor-pointer' src={assets.cross_icon} alt="" />
                                     </span>
                                 )}
                                 {searchFilter.location && (
                                     <span className='ml-2 inline-flex items-center gap-2.5 bg-red-50 border border-red-200 px-4 py-1.5 rounded'>
                                         {searchFilter.location}
-                                        <img onClick={e => setSearchFilter(prev => ({ ...prev, location: "" }))} className='cursor-pointer' src={assets.cross_icon} alt="" />
+                                        <img onClick={() => setSearchFilter(prev => ({ ...prev, location: "" }))} className='cursor-pointer' src={assets.cross_icon} alt="" />
                                     </span>
                                 )}
                             </div>
@@ -124,7 +86,7 @@ const JobListing = () => {
                     )
                 }
 
-                <button onClick={e => setShowFilter(prev => !prev)} className='px-6 py-1.5 rounded border border-gray-400 lg:hidden'>
+                <button onClick={() => setShowFilter(prev => !prev)} className='px-6 py-1.5 rounded border border-gray-400 lg:hidden'>
                     {showFilter ? "Close" : "Filters"}
                 </button>
 
@@ -132,19 +94,17 @@ const JobListing = () => {
                 <div className={showFilter ? "" : "max-lg:hidden"}>
                     <h4 className='font-medium text-lg py-4'>Search by Categories</h4>
                     <ul className='space-y-4 text-gray-600'>
-                        {
-                            JobCategories.map((category, index) => (
-                                <li className='flex gap-3 items-center' key={index}>
-                                    <input
-                                        className='scale-125'
-                                        type="checkbox"
-                                        onChange={() => handleCategoryChange(category)}
-                                        checked={selectedCategories.includes(category)}
-                                    />
-                                    {category}
-                                </li>
-                            ))
-                        }
+                        {JobCategories.map((category, index) => (
+                            <li className='flex gap-3 items-center' key={index}>
+                                <input
+                                    className='scale-125'
+                                    type="checkbox"
+                                    onChange={() => handleCategoryChange(category)}
+                                    checked={selectedCategories.includes(category)}
+                                />
+                                {category}
+                            </li>
+                        ))}
                     </ul>
                 </div>
 
@@ -152,31 +112,34 @@ const JobListing = () => {
                 <div className={showFilter ? "" : "max-lg:hidden"}>
                     <h4 className='font-medium text-lg py-4 pt-14'>Search by Location</h4>
 
-                    {Object.entries(JobLocationsByContinent).map(([continent, countries]) => (
-                        <div key={continent} className="mb-4">
-                            <button
-                                className="font-semibold text-md py-2 w-full text-left"
-                                onClick={() => toggleContinent(continent)}
-                            >
-                                {continent}
-                            </button>
-                            {expandedContinents[continent] && (
-                                <ul className='space-y-2 max-h-48 overflow-y-auto text-gray-600'>
-                                    {countries.map((location, index) => (
-                                        <li className='flex gap-3 items-center' key={index}>
-                                            <input
-                                                className='scale-125'
-                                                type="checkbox"
-                                                onChange={() => handleLocationChange(location)}
-                                                checked={selectedLocations.includes(location)}
-                                            />
-                                            {location}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                    ))}
+                    {Object.entries(continents).map(([continent, continentCountries]) => {
+                        const countries = JobLocations.filter(c => continentCountries.includes(c))
+                        return (
+                            <div key={continent} className="mb-4">
+                                <button
+                                    className="font-semibold text-md py-2 w-full text-left"
+                                    onClick={() => toggleContinent(continent)}
+                                >
+                                    {continent}
+                                </button>
+                                {expandedContinents[continent] && (
+                                    <ul className='space-y-2 max-h-48 overflow-y-auto text-gray-600'>
+                                        {countries.map((location, index) => (
+                                            <li className='flex gap-3 items-center' key={index}>
+                                                <input
+                                                    className='scale-125'
+                                                    type="checkbox"
+                                                    onChange={() => handleLocationChange(location)}
+                                                    checked={selectedLocations.includes(location)}
+                                                />
+                                                {location}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        )
+                    })}
                 </div>
             </div>
 
