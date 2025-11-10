@@ -57,7 +57,7 @@ const JobListing = () => {
                             <h3 className='font-medium text-lg mb-4'>Current Search</h3>
                             <div className='mb-4 text-gray-600'>
                                 {searchFilter.title && (
-                                    <span className='inline-flex items-center gap-2.5 bg-blue-50 border border-blue-200 px-4 py-1.5 rounded'>
+                                    <span className='inline-flex items-center gap-2.5 bg-purple-50 border border-purple-200 px-4 py-1.5 rounded'>
                                         {searchFilter.title}
                                         <img onClick={e => setSearchFilter(prev => ({ ...prev, title: "" }))} className='cursor-pointer' src={assets.cross_icon} alt="" />
                                     </span>
@@ -137,7 +137,7 @@ const JobListing = () => {
                         </a>
                         {Array.from({ length: Math.ceil(filteredJobs.length / 6) }).map((_, index) => (
                             <a key={index} href="#job-list">
-                                <button onClick={() => setCurrentPage(index + 1)} className={`w-10 h-10 flex items-center justify-center border border-gray-300 rounded ${currentPage === index + 1 ? 'bg-blue-100 text-blue-500' : 'text-gray-500'}`}>{index + 1}</button>
+                                <button onClick={() => setCurrentPage(index + 1)} className={`w-10 h-10 flex items-center justify-center border border-gray-300 rounded ${currentPage === index + 1 ? 'bg-purple-100 text-purple-500' : 'text-gray-500'}`}>{index + 1}</button>
                             </a>
                         ))}
                         <a href="#job-list">
