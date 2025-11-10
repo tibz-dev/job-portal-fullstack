@@ -136,5 +136,4 @@ const RecruiterLogin = () => {
         </div>
     )
 }
-
 export default RecruiterLogin
