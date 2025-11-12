@@ -10,7 +10,7 @@ const jobSchema = new mongoose.Schema({
   date: { type: Number, required: true },
   visible: { type: Boolean, default: true },
   companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
-  applyLink: { type: String } // ✅ optional external application link
+  url: { type: String, required: true } // ✅ optional external application link
 });
 
 const Job = mongoose.model('Job', jobSchema);
