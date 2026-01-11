@@ -73,10 +73,10 @@ export const assets = {
 }
 
 export const JobCategories = [
-    "Programming",
-    "Data Science",
-    "Designing",
-    "Networking",
+    "Engineering",
+    "Information Technology",
+    "Human Resources",
+    "Mining",
     "Management",
     "Marketing",
     "Cybersecurity",
