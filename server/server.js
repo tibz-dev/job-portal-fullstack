@@ -57,7 +57,7 @@ app.use(express.json())
 app.use(clerkMiddleware())
 
 // Routes
-app.get('/', (req, res) => res.send("API Working"))
+app.get('/', (req, res) => res.send("API Working:Eazy Link "))
 app.get("/debug-sentry", function mainHandler(req, res) {
   throw new Error("My first Sentry error!");
 });
