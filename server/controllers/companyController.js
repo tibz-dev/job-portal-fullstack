@@ -6,7 +6,8 @@ import Job from "../models/Job.js";
 import JobApplication from "../models/JobApplication.js";
 
 // Register a new company
-export const registerCompany = async (req, res) => {
+export const registerCompany = async (req, res) => 
+{
 
     const { name, email, password } = req.body
 
@@ -15,25 +16,28 @@ export const registerCompany = async (req, res) => {
     if (!name || !email || !password || !imageFile) {
         return res.json({ success: false, message: "Missing Details" })
     }
-
     try {
 
         const companyExists = await Company.findOne({ email })
-
         if (companyExists) {
             return res.json({ success: false, message: 'Company already registered' })
         }
-
         const salt = await bcrypt.genSalt(10)
         const hashPassword = await bcrypt.hash(password, salt)
-
         const imageUpload = await cloudinary.uploader.upload(imageFile.path)
-
-        const company = await Company.create({
+        const company = await Company.create(
+        {
             name,
             email,
             password: hashPassword,
-            image: imageUpload.secure_url
+            image: imageUpload.secure_url,
+            websiteLink: req.body.websiteLink || '',
+            socialLinks: 
+            {
+                linkedin: req.body.linkedin || '',
+                twitter: req.body.twitter || '',
+                facebook: req.body.facebook || '',
+            }
         })
 
         res.json({
