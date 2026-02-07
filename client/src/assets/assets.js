@@ -152,6 +152,9 @@ export const viewApplicationsPageData = [
     { _id: 5, name: "Enrique Murphy", jobTitle: "Full Stack Developer", location: "Hyderabad", imgSrc: profile_img },
     { _id: 6, name: "Alison Powell", jobTitle: "Data Scientist", location: "New Delhi", imgSrc: profile_img },
     { _id: 7, name: "Richard Sanford", jobTitle: "Marketing Manager", location: "Chennai", imgSrc: profile_img },
+    { _id: 8, name: "Enrique Murphy", jobTitle: "UI/UX Designer", location: "Pune", imgSrc: profile_img },
+    { _id: 9, name: "Alison Powell", jobTitle: "Full Stack Developer", location: "Mumbai", imgSrc: profile_img },
+    { _id: 10, name: "Richard Sanford", jobTitle: "Data Scientist", location: "Bangalore", imgSrc: profile_img },
 ];
 
 export const jobsData = [
