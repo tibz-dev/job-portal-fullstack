@@ -70,7 +70,7 @@ app.use('/api/users', userRoutes)
 Sentry.setupExpressErrorHandler(app);
 
 
-// 🛑 **CRITICAL CHANGE FOR VERCEL DEPLOYMENT**
+// 🛑 **CRITICAL CHANGE FOR DEPLOYMENT**
 // 1. Removed app.listen(PORT, ...);
 // 2. Export the app instance for Vercel's serverless runtime.
 export default app; 

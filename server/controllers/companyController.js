@@ -42,7 +42,9 @@ export const registerCompany = async (req, res) => {
                 _id: company._id,
                 name: company.name,
                 email: company.email,
-                image: company.image
+                image: company.image,
+                
+
             },
             token: generateToken(company._id)
         })
