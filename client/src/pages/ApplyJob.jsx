@@ -1,5 +1,5 @@
-import { useContext, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useContext, useEffect, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppContext } from '../context/AppContext'
 import Loading from '../components/Loading'
 import Navbar from '../components/Navbar'
@@ -21,30 +21,48 @@ const ApplyJob = () => {
   const navigate = useNavigate()
 
   const [JobData, setJobData] = useState(null)
-  const [isAlreadyApplied, setIsAlreadyApplied] = useState(false)
+  const [isApplying, setIsApplying] = useState(false)
+  const [appliedJobId, setAppliedJobId] = useState(null)
+  const [loadState, setLoadState] = useState({ id: null, error: '' })
+  const submitting = useRef(false)
 
   const { jobs, backendUrl, userData, userApplications, fetchUserApplications } = useContext(AppContext)
 
-  const fetchJob = async () => {
+  useEffect(() => {
+    let active = true
+    setJobData(null)
+    setLoadState({ id: null, error: '' })
 
-    try {
+    axios.get(backendUrl + `/api/jobs/${id}`)
+      .then(({ data }) => {
+        if (!active) return
+        if (data.success && data.job?.companyId) {
+          setJobData(data.job)
+          setLoadState({ id, error: '' })
+        } else {
+          setLoadState({ id, error: 'This vacancy is unavailable.' })
+        }
+      })
+      .catch(() => {
+        if (active) setLoadState({ id, error: 'We could not load this vacancy. Please try again later.' })
+      })
 
-      const { data } = await axios.get(backendUrl + `/api/jobs/${id}`)
+    return () => { active = false }
+  }, [id, backendUrl])
 
-      if (data.success) {
-        setJobData(data.job)
-      } else {
-        toast.error(data.message)
-      }
-
-    } catch (error) {
-      toast.error(error.message)
-    }
-
-  }
+  const isAlreadyApplied = appliedJobId === id ||
+    userApplications.some((item) => item.jobId?._id === id)
 
   const applyHandler = async () => {
+    if (submitting.current || isAlreadyApplied) return
+    submitting.current = true
+    setIsApplying(true)
     try {
+      if (JobData.applyLink) {
+        window.open(JobData.applyLink, '_blank', 'noopener,noreferrer')
+        return
+      }
+
 
       if (!userData) {
         return toast.error('Login to apply for jobs')
@@ -64,32 +82,35 @@ const ApplyJob = () => {
 
       if (data.success) {
         toast.success(data.message)
-        fetchUserApplications()
+        setAppliedJobId(id)
+        await fetchUserApplications()
       } else {
         toast.error(data.message)
       }
 
     } catch (error) {
       toast.error(error.message)
+    } finally {
+      submitting.current = false
+      setIsApplying(false)
     }
   }
 
-  const checkAlreadyApplied = () => {
+  if (loadState.id !== id) return <Loading />
 
-    const hasApplied = userApplications.some(item => item.jobId._id === JobData._id)
-    setIsAlreadyApplied(hasApplied)
-
+  if (loadState.error) {
+    return (
+      <>
+        <Navbar />
+        <main className="container mx-auto min-h-[50vh] px-4 py-16">
+          <h1 className="text-3xl font-semibold">Vacancy unavailable</h1>
+          <p className="my-4" role="status">{loadState.error}</p>
+          <Link to="/" className="text-blue-800 underline">Browse other vacancies</Link>
+        </main>
+        <Footer />
+      </>
+    )
   }
-
-  useEffect(() => {
-    fetchJob()
-  }, [id])
-
-  useEffect(() => {
-    if (userApplications.length > 0 && JobData) {
-      checkAlreadyApplied()
-    }
-  }, [JobData, userApplications, id])
 
   return JobData ? (
     <>
@@ -124,7 +145,7 @@ const ApplyJob = () => {
             </div>
 
             <div className='flex flex-col justify-center text-end text-sm max-md:mx-auto max-md:text-center'>
-              <button onClick={applyHandler} className='bg-purple-600 p-2.5 px-10 text-white rounded'>{isAlreadyApplied ? 'Already Applied' : 'Apply Now'}</button>
+              <button disabled={isAlreadyApplied || isApplying} onClick={applyHandler} className='bg-[#203eab] disabled:opacity-60 p-2.5 px-10 text-white rounded'>{isAlreadyApplied ? 'Already applied' : isApplying ? 'Submitting…' : JobData.applyLink ? 'Apply on employer site ↗' : 'Apply now'}</button>
               <p className='mt-1 text-gray-600'>Posted {moment(JobData.date).fromNow()}</p>
             </div>
 
@@ -134,19 +155,19 @@ const ApplyJob = () => {
             <div className='w-full lg:w-2/3'>
               <h2 className='font-bold text-2xl mb-4'>Job description</h2>
               <div className='rich-text' dangerouslySetInnerHTML={{ __html: JobData.description }}></div>
-              <button onClick={applyHandler} className='bg-purple-600 p-2.5 px-10 text-white rounded mt-10'>{isAlreadyApplied ? 'Already Applied' : 'Apply Now'}</button>
+              <button disabled={isAlreadyApplied || isApplying} onClick={applyHandler} className='bg-[#203eab] disabled:opacity-60 p-2.5 px-10 text-white rounded mt-10'>{isAlreadyApplied ? 'Already applied' : isApplying ? 'Submitting…' : JobData.applyLink ? 'Apply on employer site ↗' : 'Apply now'}</button>
             </div>
             {/* Right Section More Jobs */}
             <div className='w-full lg:w-1/3 mt-8 lg:mt-0 lg:ml-8 space-y-5'>
               <h2>More jobs from {JobData.companyId.name}</h2>
-              {jobs.filter(job => job._id !== JobData._id && job.companyId._id === JobData.companyId._id)
+              {jobs.filter(job => job._id !== JobData._id && job.companyId?._id === JobData.companyId._id)
                 .filter(job => {
                   // Set of applied jobIds
                   const appliedJobsIds = new Set(userApplications.map(app => app.jobId && app.jobId._id))
                   // Return true if the user has not already applied for this job
                   return !appliedJobsIds.has(job._id)
                 }).slice(0, 4)
-                .map((job, index) => <JobCard key={index} job={job} />)}
+                .map((job) => <JobCard key={job._id} job={job} />)}
             </div>
           </div>
 
