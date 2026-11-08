@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import moment from 'moment'
 import { useNavigate } from 'react-router-dom'
 import { AppContext } from '../context/AppContext'
@@ -11,11 +11,16 @@ const ManageJobs = () => {
   const navigate = useNavigate()
 
   const [jobs, setJobs] = useState(false)
+  const [loadError, setLoadError] = useState('')
+  const [busyIds, setBusyIds] = useState([])
+  const pendingIds = useRef(new Set())
+
 
   const { backendUrl, companyToken } = useContext(AppContext)
 
   // Function to fetch company Job Applications data 
-  const fetchCompanyJobs = async () => {
+  const fetchCompanyJobs = useCallback(async () => {
+    setLoadError('')
 
     try {
 
@@ -26,18 +31,21 @@ const ManageJobs = () => {
       if (data.success) {
         setJobs(data.jobsData.reverse())
       } else {
-        toast.error(data.message)
+        setLoadError(data.message || 'Unable to load data. Please try again.')
       }
 
     } catch (error) {
-      toast.error(error.message)
+      setLoadError(error.message)
     }
 
-  }
+  }, [backendUrl, companyToken])
 
   // Function to change Job Visibility 
   const changeJobVisiblity = async (id) => {
 
+    if (pendingIds.current.has(id)) return
+    pendingIds.current.add(id)
+    setBusyIds(Array.from(pendingIds.current))
     try {
 
       const { data } = await axios.post(backendUrl + '/api/company/change-visiblity',
@@ -47,13 +55,16 @@ const ManageJobs = () => {
 
       if (data.success) {
         toast.success(data.message)
-        fetchCompanyJobs()
+        await fetchCompanyJobs()
       } else {
         toast.error(data.message)
       }
 
     } catch (error) {
       toast.error(error.message)
+    } finally {
+      pendingIds.current.delete(id)
+      setBusyIds(Array.from(pendingIds.current))
     }
 
   }
@@ -62,11 +73,23 @@ const ManageJobs = () => {
     if (companyToken) {
       fetchCompanyJobs()
     }
-  }, [companyToken])
+  }, [companyToken, fetchCompanyJobs])
+
+  if (loadError) {
+    return (
+      <div className="p-8">
+        <p role="alert">{loadError}</p>
+        <button type="button" onClick={ fetchCompanyJobs } className="mt-3 text-blue-800 underline">Try again</button>
+      </div>
+    )
+  }
 
   return jobs ? jobs.length === 0 ? (
     <div className='flex items-center justify-center h-[70vh]'>
-      <p className='text-xl sm:text-2xl'>No Jobs Available or posted</p>
+      <div className="text-center">
+        <h1 className="text-2xl">You haven’t posted any jobs yet</h1>
+        <button onClick={() => navigate('/dashboard/add-job')} className="mt-4 rounded bg-blue-800 px-4 py-2 text-white">Post your first job</button>
+      </div>
     </div>
   ) : (
     <div className='container p-4 max-w-5xl'>
@@ -84,14 +107,14 @@ const ManageJobs = () => {
           </thead>
           <tbody>
             {jobs.map((job, index) => (
-              <tr key={index} className='text-gray-700'>
+              <tr key={job._id} className='text-gray-700'>
                 <td className='py-2 px-4 border-b max-sm:hidden'>{index + 1}</td>
                 <td className='py-2 px-4 border-b' >{job.title}</td>
                 <td className='py-2 px-4 border-b max-sm:hidden' >{moment(job.date).format('ll')}</td>
                 <td className='py-2 px-4 border-b max-sm:hidden' >{job.location}</td>
                 <td className='py-2 px-4 border-b text-center' >{job.applicants}</td>
                 <td className='py-2 px-4 border-b' >
-                  <input onChange={() => changeJobVisiblity(job._id)} className='scale-125 ml-4' type="checkbox" checked={job.visible} />
+                  <input aria-label={`Show ${job.title} to candidates`} disabled={busyIds.includes(job._id)} onChange={() => changeJobVisiblity(job._id)} className='scale-125 ml-4' type="checkbox" checked={job.visible} />
                 </td>
               </tr>
             ))}

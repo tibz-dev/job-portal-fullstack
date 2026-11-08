@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { assets } from '../assets/assets'
 import { AppContext } from '../context/AppContext'
 import axios from 'axios'
@@ -10,9 +10,14 @@ const ViewApplications = () => {
   const { backendUrl, companyToken } = useContext(AppContext)
 
   const [applicants, setApplicants] = useState(false)
+  const [loadError, setLoadError] = useState('')
+  const [busyIds, setBusyIds] = useState([])
+  const pendingIds = useRef(new Set())
+
 
   // Function to fetch company Job Applications data 
-  const fetchCompanyJobApplications = async () => {
+  const fetchCompanyJobApplications = useCallback(async () => {
+    setLoadError('')
 
     try {
 
@@ -23,17 +28,20 @@ const ViewApplications = () => {
       if (data.success) {
         setApplicants(data.applications.reverse())
       } else {
-        toast.error(data.message)
+        setLoadError(data.message || 'Unable to load data. Please try again.')
       }
 
     } catch (error) {
-      toast.error(error.message)
+      setLoadError(error.message)
     }
 
-  }
+  }, [backendUrl, companyToken])
 
   // Function to Update Job Applications Status 
   const changeJobApplicationStatus = async (id, status) => {
+    if (pendingIds.current.has(id)) return
+    pendingIds.current.add(id)
+    setBusyIds(Array.from(pendingIds.current))
     try {
 
       const { data } = await axios.post(backendUrl + '/api/company/change-status',
@@ -42,13 +50,16 @@ const ViewApplications = () => {
       )
 
       if (data.success) {
-        fetchCompanyJobApplications()
+        await fetchCompanyJobApplications()
       } else {
         toast.error(data.message)
       }
 
     } catch (error) {
       toast.error(error.message)
+    } finally {
+      pendingIds.current.delete(id)
+      setBusyIds(Array.from(pendingIds.current))
     }
   }
 
@@ -56,7 +67,16 @@ const ViewApplications = () => {
     if (companyToken) {
       fetchCompanyJobApplications()
     }
-  }, [companyToken])
+  }, [companyToken, fetchCompanyJobApplications])
+
+  if (loadError) {
+    return (
+      <div className="p-8">
+        <p role="alert">{loadError}</p>
+        <button type="button" onClick={ fetchCompanyJobApplications } className="mt-3 text-blue-800 underline">Try again</button>
+      </div>
+    )
+  }
 
   return applicants ? applicants.length === 0 ? (
     <div className='flex items-center justify-center h-[70vh]'>
@@ -64,7 +84,7 @@ const ViewApplications = () => {
     </div>
   ) : (
     <div className='container mx-auto p-4'>
-      <div>
+      <div className="overflow-x-auto">
         <table className='w-full max-w-4xl bg-white border border-gray-200 max-sm:text-sm'>
           <thead>
             <tr className='border-b'>
@@ -78,7 +98,7 @@ const ViewApplications = () => {
           </thead>
           <tbody>
             {applicants.filter(item => item.jobId && item.userId).map((applicant, index) => (
-              <tr key={index} className='text-gray-700'>
+              <tr key={applicant._id} className='text-gray-700'>
                 <td className='py-2 px-4 border-b text-center'>{index + 1}</td>
                 <td className='py-2 px-4 border-b text-center flex items-center'>
                   <img className='w-10 h-10 rounded-full mr-3 max-sm:hidden' src={applicant.userId.image} alt="" />
@@ -87,7 +107,7 @@ const ViewApplications = () => {
                 <td className='py-2 px-4 border-b max-sm:hidden'>{applicant.jobId.title}</td>
                 <td className='py-2 px-4 border-b max-sm:hidden'>{applicant.jobId.location}</td>
                 <td className='py-2 px-4 border-b'>
-                  <a href={applicant.userId.resume} target='_blank'
+                  <a href={applicant.userId.resume} target='_blank' rel='noopener noreferrer'
                     className='bg-purple-50 text-purple-400 px-3 py-1 rounded inline-flex gap-2 items-center'
                   >
                     Resume <img src={assets.resume_download_icon} alt="" />
@@ -95,12 +115,13 @@ const ViewApplications = () => {
                 </td>
                 <td className='py-2 px-4 border-b relative'>
                   {applicant.status === "Pending"
-                    ? <div className='relative inline-block text-left group'>
-                      <button className='text-gray-500 action-button'>...</button>
-                      <div className='z-10 hidden absolute right-0 md:left-0 top-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow group-hover:block'>
-                        <button onClick={() => changeJobApplicationStatus(applicant._id, 'Accepted')} className='block w-full text-left px-4 py-2 text-purple-500 hover:bg-gray-100'>Accept</button>
-                        <button onClick={() => changeJobApplicationStatus(applicant._id, 'Rejected')} className='block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100'>Reject</button>
-                      </div>
+                    ? <div className="flex flex-wrap gap-2">
+                      <button type="button" disabled={busyIds.includes(applicant._id)} onClick={() => changeJobApplicationStatus(applicant._id, 'Accepted')}
+                        aria-label={`Accept ${applicant.userId.name}'s application`}
+                        className="rounded border px-3 py-2 text-blue-800 disabled:opacity-50">Accept</button>
+                      <button type="button" disabled={busyIds.includes(applicant._id)} onClick={() => changeJobApplicationStatus(applicant._id, 'Rejected')}
+                        aria-label={`Reject ${applicant.userId.name}'s application`}
+                        className="rounded border px-3 py-2 text-red-700 disabled:opacity-50">Reject</button>
                     </div>
                     : <div>{applicant.status}</div>
                   }
