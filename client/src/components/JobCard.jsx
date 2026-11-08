@@ -5,46 +5,40 @@ const JobCard = ({ job }) => {
 
   const handleApplyClick = () => {
     if (job.applyLink) {
-      window.open(job.applyLink, '_blank');
+      window.open(job.applyLink, '_blank', 'noopener,noreferrer');
     } else {
       navigate(`/apply-job/${job._id}`);
       scrollTo(0, 0);
     }
   };
 
-  // 🧩 Defensive Guard
-  if (!job || !job.companyId) {
-    return (
-      <div className="border p-6 shadow rounded bg-red-50 text-center">
-        <p className="text-red-700 text-sm font-medium">
-          ⚠️ Invalid job data (missing company info)
-        </p>
-      </div>
-    );
-  }
+  if (!job || !job.companyId) return null;
+
+  const description = new DOMParser()
+    .parseFromString(job.description || '', 'text/html').body.textContent || '';
 
   return (
-    <div className="border p-6 shadow rounded">
+    <div className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex justify-between items-center">
-        <img
-          className="h-8"
-          src={job.companyId?.image || '/placeholder.png'}
-          alt={job.companyId?.name || 'Company Logo'}
-        />
+        <div className="flex items-center gap-3">
+          {job.companyId.image && (
+            <img className="h-10 w-10 object-contain" src={job.companyId.image} alt="" />
+          )}
+          <p className="text-sm font-medium text-slate-600">{job.companyId.name || 'Employer'}</p>
+        </div>
       </div>
       <h4 className="font-medium text-xl mt-2">{job.title}</h4>
-      <div className="flex items-center gap-3 mt-2 text-xs">
-        <span className="bg-purple-50 border border-purple-200 px-4 py-1.5 rounded">{job.location}</span>
-        <span className="bg-red-50 border border-red-200 px-4 py-1.5 rounded">{job.level}</span>
+      <div className="flex flex-wrap items-center gap-2 mt-3 text-xs">
+        <span className="bg-blue-50 border border-blue-200 px-4 py-1.5 rounded">{job.location}</span>
+        <span className="bg-slate-50 border border-slate-200 px-4 py-1.5 rounded">{job.level}</span>
       </div>
-      <p
-        className="text-gray-500 text-sm mt-4"
-        dangerouslySetInnerHTML={{ __html: job.description.slice(0, 150) }}
-      ></p>
-      <div className="mt-4 flex gap-4 text-sm">
+      <p className="my-4 text-sm text-slate-600">
+        {description.slice(0, 150)}{description.length > 150 ? '…' : ''}
+      </p>
+      <div className="mt-auto flex flex-wrap gap-3 pt-2 text-sm">
         <button
           onClick={handleApplyClick}
-          className="bg-purple-600 text-white px-4 py-2 rounded"
+          className="bg-[#203eab] text-white px-4 py-2 rounded"
         >
           Apply now
         </button>

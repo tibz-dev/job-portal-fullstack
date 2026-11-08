@@ -1,17 +1,13 @@
 import { assets } from '../assets/assets'
 
-const Footer = () => {
-  return (
-    <div className='container px-4 2xl:px-20 mx-auto flex items-center justify-between gap-4 py-3 mt-20'>
-      <img width={160} src={assets.logo} alt="" />
-      <p className='flex-1 border-l border-gray-400 pl-4 text-sm text-gray-500 max-sm:hidden'>Copyright @Easylink.co.za | All right reserved.</p>
-      <div className='flex gap-2.5'>
-        <img width={38} src={assets.facebook_icon} alt="" />
-        <img width={38} src={assets.twitter_icon} alt="" />
-        <img width={38} src={assets.instagram_icon} alt="" />
-      </div>
+const Footer = () => (
+  <footer className="mt-16 border-t border-slate-200 bg-slate-50">
+    <div className="container mx-auto flex flex-wrap items-center justify-between gap-6 px-4 py-8 2xl:px-20">
+      <img width={140} src={assets.logo} alt="EazyLink" />
+      <p className="text-sm text-slate-600">EazyLink Careers · South Africa</p>
+      <a href="mailto:info@eazylinkjobs.co.za" className="text-sm text-blue-800 underline">Contact support</a>
     </div>
-  )
-}
+  </footer>
+)
 
 export default Footer
